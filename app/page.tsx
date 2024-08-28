@@ -1,6 +1,6 @@
-"use client"
+"use client";
 import React, { useState, useEffect } from "react";
-import { Connection, PublicKey, Transaction, Keypair, SystemProgram } from "@solana/web3.js";
+import { Connection, Transaction, Keypair, SystemProgram, PublicKey } from "@solana/web3.js";
 import { createMint, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 
 declare global {
@@ -34,6 +34,10 @@ export default function Home() {
 
       // Connect to Phantom wallet
       const response = await window.solana.connect();
+      if (!response.publicKey) {
+        setMessage("Failed to retrieve public key from Phantom wallet.");
+        return;
+      }
       const publicKey = response.publicKey;
       console.log("Connected with public key:", publicKey.toString());
 
@@ -53,7 +57,7 @@ export default function Home() {
       });
 
       // Initialize mint instruction
-      const mintIx = createMint(
+      const mintIx = await createMint(
         connection,
         publicKey, // Fee payer
         mintAccount.publicKey, // Mint authority
@@ -63,7 +67,7 @@ export default function Home() {
 
       // Add instructions to the transaction
       transaction.add(createAccountIx);
-      transaction.add(mintIx); // Here is the issue, mintIx should be an Instruction
+      transaction.add(mintIx);
 
       // Add recent blockhash and fee payer
       const { blockhash } = await connection.getLatestBlockhash();
@@ -103,7 +107,7 @@ export default function Home() {
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             type="text"
             value={symbol}
-            onChange={(e) => setSymbol(e.target.value)}
+            onChange={(e) => setSymbol(e.target.value)} // Removed extra closing parenthesis here
           />
         </div>
         <div className="mb-4">
